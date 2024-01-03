@@ -20,34 +20,31 @@ parser.add_argument("-f", dest="file", type=str, required=True,
 args = parser.parse_args()
 file = args.file
 
+with open(file) as html:
+    soup = BeautifulSoup(html.read(), "html.parser")
+    always = soup.find("div", {"id": "workflow_form_always"})
+    rows = always.find_all("tr", class_="-table-border-left")
+
 def get_status_text():
-    with open(file) as html:
-        soup = BeautifulSoup(html.read(), "html.parser")
-        always = soup.find("div", {"id": "workflow_form_always"})
-        rows = always.find_all("tr", class_="-table-border-left")
-        status_dict = dict()
-        for status in rows:
-            status_text_raw = status.find("td", class_="workflow-table--current-status -table-border-right")
-            status_text = re.sub(r'Alle in Zeile an\/abwählen',r'',status_text_raw.text.strip()).strip()
-            status_id = re.findall(r'(status_)(.*)(_[0-9]*_)', status.input['id'])[0][1]
-            status_dict[status_id] = status_text
+    status_dict = dict()
+    for row in rows:
+        status_raw = row.find("td", class_="workflow-table--current-status -table-border-right")
+        status_text = re.sub(r'Alle in Zeile an\/abwählen',r'',status_raw.text.strip()).strip()
+        status_id = re.findall(r'(status_)(.*)(_[0-9]*_)', row.input['id'])[0][1]
+        status_dict[status_id] = status_text
     return status_dict
 
 def get_workflow():
-    with open(file) as html:
-        soup = BeautifulSoup(html.read(), "html.parser")
-        always = soup.find("div", {"id": "workflow_form_always"})
-        rows = always.find_all("tr", class_="-table-border-left")
-        workflow = []
-        for row in rows:
-            input_fields = row.find_all('input')
-            for input_field in input_fields:
-                regex_groups = re.findall(r'(status_)([0-9]*)(_)([0-9]*)(_)', input_field['id'])
-                old_status = regex_groups[0][1]
-                new_status = regex_groups[0][3]
-                if old_status == new_status:
-                    continue
-                workflow.append(old_status + ' --> ' + new_status)
+    workflow = []
+    for row in rows:
+        input_fields = row.find_all('input')
+        for input_field in input_fields:
+            regex_groups = re.findall(r'(status_)([0-9]*)(_)([0-9]*)(_)', input_field['id'])
+            old_status = regex_groups[0][1]
+            new_status = regex_groups[0][3]
+            if old_status == new_status:
+                continue
+            workflow.append(old_status + ' --> ' + new_status)
     return workflow
 
 def build_mermaid(status,workflow):
