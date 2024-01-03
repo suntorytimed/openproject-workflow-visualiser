@@ -39,6 +39,10 @@ def get_workflow():
     for row in rows:
         input_fields = row.find_all('input')
         for input_field in input_fields:
+            try:
+                input_field['checked']
+            except:
+                continue
             regex_groups = re.findall(r'(status_)([0-9]*)(_)([0-9]*)(_)', input_field['id'])
             old_status = regex_groups[0][1]
             new_status = regex_groups[0][3]
