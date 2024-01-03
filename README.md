@@ -72,3 +72,22 @@ stateDiagram-v2
     13 --> 12
     22 --> 7
 ```
+
+## Example (role: Reader, type: Epic)
+The role in this example doesn't have any rights to adjust states.
+
+```mermaid
+stateDiagram-v2
+    1: New
+    2: In specification
+    3: Specified
+    7: In progress
+    8: Developed
+    9: In testing
+    10: Tested
+    11: Test failed
+    12: Closed
+    13: On hold
+    14: Rejected
+    22: Approved
+```
