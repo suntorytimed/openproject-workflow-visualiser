@@ -25,6 +25,13 @@ with open(file) as html:
     always = soup.find("div", {"id": "workflow_form_always"})
     rows = always.find_all("tr", class_="-table-border-left")
 
+'''
+Extracts a key value pair for each status mentioned in the HTML. As each status does have a unique ID
+and each row in a table contains a status, the text can be extracted from the row and get paired with
+the old status ID mentioned in the checkbox ID in one of the checkboxes of the row.
+
+:return: dictionary with status ID as key and status text as value
+'''
 def get_status_text():
     status_dict = dict()
     for row in rows:
@@ -34,11 +41,18 @@ def get_status_text():
         status_dict[status_id] = status_text
     return status_dict
 
+'''
+Creates Mermaid formatted lines for each status change in the workflow. Uses the old and new status
+information which is part of the ID string of each checkbox.
+
+:return: list of Mermaid formatted strings for each status change in the workflow
+'''
 def get_workflow():
     workflow = []
     for row in rows:
         input_fields = row.find_all('input')
         for input_field in input_fields:
+            # ensure that only checked checkboxes are used
             try:
                 input_field['checked']
             except:
@@ -51,7 +65,10 @@ def get_workflow():
             workflow.append(old_status + ' --> ' + new_status)
     return workflow
 
-def build_mermaid(status,workflow):
+'''
+Prints out a Mermaid state diagram for the workflow.
+'''
+def print_mermaid(status,workflow):
     print('```mermaid')
     print('stateDiagram-v2')
     for key, value in status.items():
@@ -64,7 +81,7 @@ if __name__ == "__main__":
     try:
         status = get_status_text()
         workflow = get_workflow()
-        build_mermaid(status,workflow)
+        print_mermaid(status,workflow)
     except Exception as error:
         print('ERROR', error)
     pass
