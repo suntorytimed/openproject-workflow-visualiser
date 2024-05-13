@@ -3,7 +3,10 @@
 Script to create a Mermaid visualisation of an OpenProject workflow page
 '''
 import argparse
+import os
 import re
+import subprocess
+import tempfile
 from bs4 import BeautifulSoup
 
 __author__ = 'Stefan Weiberg'
@@ -17,9 +20,12 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("-f", dest="file", type=str, required=True,
                     help="HTML file of the workflow page")
+parser.add_argument("-o", dest="output", type=str,
+                    help="output file for PNG rendering with mermaid-cli (mmdc in $PATH)")
 
 args = parser.parse_args()
 file = args.file
+output = args.output
 
 with open(file, encoding="utf8") as html:
     soup = BeautifulSoup(html.read(), "html.parser")
@@ -79,7 +85,26 @@ def print_mermaid(status_dict,workflow_list):
         print('    ' + line)
     print('```')
 
+def generate_svg(status_dict,workflow_list,output):
+    '''
+    Output a PNG rendering of the workflow with mermaid-cli (requires mmdc in $PATH).
+    '''
+    with tempfile.NamedTemporaryFile(delete=False, mode='w') as tmp:
+        tmp.write('stateDiagram-v2\n')
+        for key, value in status_dict.items():
+            tmp.write(f'    {key}: {value}\n')
+        for line in workflow_list:
+            tmp.write(f'    {line}\n')
+    try:
+        subprocess.run(["mmdc", "-i", tmp.name, "-e", "png", "-o", output], check=True)
+    finally:
+        tmp.close()
+        os.remove(tmp.name)
+    
 if __name__ == "__main__":
     status = get_status_text()
     workflow = get_workflow()
-    print_mermaid(status,workflow)
+    if output is not None:
+        generate_svg(status,workflow,output)
+    else:
+        print_mermaid(status,workflow)
