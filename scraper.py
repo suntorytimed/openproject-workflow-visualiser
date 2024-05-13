@@ -85,7 +85,7 @@ def print_mermaid(status_dict,workflow_list):
         print('    ' + line)
     print('```')
 
-def generate_svg(status_dict,workflow_list,output):
+def generate_svg(status_dict,workflow_list):
     '''
     Output a PNG rendering of the workflow with mermaid-cli (requires mmdc in $PATH).
     '''
@@ -100,11 +100,11 @@ def generate_svg(status_dict,workflow_list,output):
     finally:
         tmp.close()
         os.remove(tmp.name)
-    
+ 
 if __name__ == "__main__":
     status = get_status_text()
     workflow = get_workflow()
     if output is not None:
-        generate_svg(status,workflow,output)
+        generate_svg(status,workflow)
     else:
         print_mermaid(status,workflow)
